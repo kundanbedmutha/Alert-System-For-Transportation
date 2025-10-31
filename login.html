@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:center;align-items:center;height:80vh;">
+  <div style="width:380px;background:white;padding:30px;border-radius:12px;
+              box-shadow:0 4px 12px rgba(0,0,0,0.1);text-align:center;">
+    <h2 style="margin-bottom:20px;font-weight:700;font-size:1.6rem;">
+      🔑 Login
+    </h2>
+
+    <form method="post" style="text-align:left;">
+      <label style="font-weight:500;">Email:</label>
+      <input type="email" name="email" required
+             style="width:100%;padding:10px;margin-top:5px;margin-bottom:15px;
+                    border:1px solid #ccc;border-radius:8px;">
+
+      <label style="font-weight:500;">Password:</label>
+      <input type="password" name="password" required
+             style="width:100%;padding:10px;margin-top:5px;margin-bottom:20px;
+                    border:1px solid #ccc;border-radius:8px;">
+
+      <button type="submit"
+              style="width:100%;padding:10px;background:#4F46E5;color:white;
+                     border:none;border-radius:8px;font-weight:600;">
+        Login
+      </button>
+    </form>
+
+    <div style="margin:15px 0;color:#6b7280;">OR</div>
+
+    <a href="/clerk_login"
+       style="display:inline-flex;align-items:center;justify-content:center;
+              gap:10px;background:#fff;border:1px solid #ccc;width:100%;
+              padding:10px;border-radius:8px;text-decoration:none;
+              font-weight:500;color:#333;">
+      <img src="https://developers.google.com/identity/images/g-logo.png"
+           style="width:20px;height:20px;">
+      Sign in with Google / Clerk
+    </a>
+
+    <p style="margin-top:20px;">
+      No account? <a href="/register" style="color:#4F46E5;font-weight:600;">Register</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

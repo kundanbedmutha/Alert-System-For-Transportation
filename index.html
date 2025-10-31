@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Home | Smart Transport System{% endblock %}
+{% block content %}
+
+<style>
+.hero {
+  text-align: center;
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hero .traffic-light {
+  width: 45px;
+  height: 120px;
+  background: #333;
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.hero .light {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  opacity: 0.4;
+  transition: 0.4s;
+}
+.red { background-color: #ef4444; animation: blink 2s infinite; }
+.yellow { background-color: #facc15; animation: blink 2s infinite 0.4s; }
+.green { background-color: #22c55e; animation: blink 2s infinite 0.8s; }
+
+@keyframes blink {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 10px 0;
+}
+.hero p {
+  max-width: 700px;
+  margin: 0 auto 24px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.hero .buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.hero .btn {
+  padding: 15px 35px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.05em;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  transition: 0.3s;
+}
+.btn-dashboard {
+  background-color: #4F46E5;
+}
+.btn-dashboard:hover {
+  background-color: #4338ca;
+  transform: translateY(-3px);
+}
+.btn-alerts {
+  background-color: #ef4444;
+}
+.btn-alerts:hover {
+  background-color: #b91c1c;
+  transform: translateY(-3px);
+}
+.footer-note {
+  margin-top: 40px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.footer-note strong { color: #111; }
+</style>
+
+<div class="hero">
+  <div class="traffic-light">
+    <div class="light red"></div>
+    <div class="light yellow"></div>
+    <div class="light green"></div>
+  </div>
+
+  <h1>AI/ML-Based Transportation Alert System</h1>
+  <p>
+    Real-time anomaly detection, accident risk prediction, and weather-aware
+    recommendations for smarter transport safety using advanced AI/ML models.
+  </p>
+
+  <div class="buttons">
+    <a href="/dashboard">
+      <button class="btn btn-dashboard">📊 View Dashboard</button>
+    </a>
+    <a href="/alerts">
+      <button class="btn btn-alerts">🚨 View Alerts</button>
+    </a>
+  </div>
+
+  <div class="footer-note">
+    Developed by <strong>Kundan Bedmutha</strong> | Flask + ML + Python
+  </div>
+</div>
+
+{% endblock %}
