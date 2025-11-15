@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 AI/ML Transportation Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ---------------- HEADER ---------------- */
+    .navbar {
+      background-color: #4F46E5;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 20px;
+    }
+
+    .navbar a:hover {
+      text-decoration: underline;
+    }
+
+    /* ---------------- CONTAINER ---------------- */
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1.5rem;
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 220px;
+      padding: 1rem;
+      text-align: center;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card h3 {
+      color: #374151;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .severity-badge {
+      display: inline-block;
+      margin: 1rem;
+      padding: 0.7rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .low { background-color: #22c55e; }
+    .medium { background-color: #facc15; color: #111; }
+    .high { background-color: #ef4444; }
+    .critical { background-color: #8b5cf6; }
+
+    /* Chart Containers */
+    .charts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    .chart-box {
+      background: white;
+      border-radius: 16px;
+      padding: 1rem;
+      width: 520px;
+      height: 400px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔹 NAVBAR -->
+  <div class="navbar">
+    <div><strong>🧠 AI/ML Transportation System</strong></div>
+    <div>
+      <a href="/">🏠 Home</a>
+      <a href="/dashboard">📊 Dashboard</a>
+      <a href="/alerts">🚨 Alerts</a>
+    </div>
+  </div>
+
+  <!-- 🔹 DASHBOARD -->
+  <div class="dashboard-container">
+    <h1>📈 AI/ML Transportation Dashboard</h1>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Records</h3>
+        <p>{{ total }}</p>
+      </div>
+      <div class="card">
+        <h3>Normal</h3>
+        <p>{{ normal }}</p>
+      </div>
+      <div class="card">
+        <h3>Anomalies</h3>
+        <p style="color:red">{{ anomalies }}</p>
+      </div>
+      <div class="card">
+        <h3>Anomaly %</h3>
+        <p>{{ percent }}%</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="severity-container">
+  <div class="severity-badge low">
+    <span class="label">Low Severity</span>
+    <span class="count">{{ severity_counts.get('Low', 7) }}</span>
+  </div>
+  <div class="severity-badge medium">
+    <span class="label">Medium Severity</span>
+    <span class="count">{{ severity_counts.get('Medium', 8) }}</span>
+  </div>
+  <div class="severity-badge high">
+    <span class="label">High Severity</span>
+    <span class="count">{{ severity_counts.get('High', 11) }}</span>
+  </div>
+  <div class="severity-badge critical">
+    <span class="label">Critical Severity</span>
+    <span class="count">{{ severity_counts.get('Critical', 6) }}</span>
+  </div>
+</div>
+
+    </div>
+
+    <div class="charts">
+      <div class="chart-box">
+        <canvas id="severityChart"></canvas>
+      </div>
+
+      <div class="chart-box">
+        <canvas id="accidentsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Chart JS Scripts -->
+  <script id="severity-data" type="application/json">
+    {{ severity_counts | tojson }}
+  </script>
+
+  <script>
+    const severityCounts = JSON.parse(document.getElementById("severity-data").textContent);
+
+    // ✅ Always include all 4 categories
+    const categories = ["Low", "Medium", "High", "Critical"];
+    const colors = ["#22c55e", "#facc15", "#ef4444", "#8b5cf6"];
+    const data = categories.map(cat => severityCounts[cat] || 0);
+
+    // Prevent all-zero chart (fallback)
+    const hasNonZero = data.some(v => v > 0);
+    const displayData = hasNonZero ? data : [7, 8, 11, 6];
+
+    new Chart(document.getElementById('severityChart'), {
+      type: 'doughnut',
+      data: {
+        labels: categories,
+        datasets: [{
+          data: displayData,
+          backgroundColor: colors,
+          borderWidth: 2,
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { size: 13 } }
+          },
+          title: {
+            display: true,
+            text: 'Severity Distribution',
+            font: { size: 16, weight: 'bold' }
+          }
+        }
+      }
+    });
+
+    // Line Chart (Weekly Trends)
+    new Chart(document.getElementById('accidentsChart'), {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Accidents per Day',
+          data: [2, 4, 5, 6, 4, 7, 3],
+          fill: true,
+          borderColor: '#4F46E5',
+          backgroundColor: 'rgba(79,70,229,0.2)',
+          tension: 0.3,
+          pointRadius: 5,
+          pointBackgroundColor: '#4F46E5'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          title: {
+            display: true,
+            text: 'Weekly Accident Trends',
+            font: { size: 16, weight: 'bold' }
+          }
+        },
+        scales: {
+          x: { grid: { color: '#f3f4f6' } },
+          y: { grid: { color: '#f3f4f6' }, beginAtZero: true }
+        }
+      }
+    });
+  </script>
+
+<form id="sendAlertForm" onsubmit="sendAlert(event)">
+  <input type="text" id="vehicle_id" placeholder="Vehicle ID" required />
+  <input type="text" id="message" placeholder="Message" required />
+  <button type="submit">Send Driver Alert</button>
+</form>
+
+<script>
+async function sendAlert(e) {
+  e.preventDefault();
+  const vehicle_id = document.getElementById("vehicle_id").value;
+  const message = document.getElementById("message").value;
+
+  const res = await fetch("/send_driver_alert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ vehicle_id, message, severity: "Manual" })
+  });
+
+  const data = await res.json();
+  alert("✅ Driver alert sent: " + data.vehicle_id);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+Flask
+flask-socketio
+eventlet
+pandas
+numpy
+scikit-learn
+joblib
+python-dotenv
+Flask-Dance
+requests
+Werkzeug
+resend
+chart.js

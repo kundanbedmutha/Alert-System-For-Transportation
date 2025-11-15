@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Live Vehicle Map | Smart Transport System{% endblock %}
+{% block content %}
+
+<h1 style="text-align:center; margin-top:10px;">🗺️ Live Vehicle Locations & Accident Zones</h1>
+
+<div id="map"
+     style="height:80vh;width:90%;margin:20px auto;border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.2);"></div>
+
+<!-- Leaflet Maps -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Socket.IO -->
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<script>
+  /* ---------------------------------------------------
+     INITIALIZE MAP
+  -----------------------------------------------------*/
+  const socket = io();
+  const map = L.map('map').setView([18.5204, 73.8567], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  const severityColors = { "High": "red", "Critical": "purple" };
+  const activeZones = {};   // lock markers per vehicle
+
+
+  /* ---------------------------------------------------
+     DIRECT MAP LOAD FROM ALERT PAGE (IMPORTANT FEATURE)
+     /map?lat=18.5&lon=73.8&sev=High
+  -----------------------------------------------------*/
+  const params = new URLSearchParams(window.location.search);
+  const lat = params.get("lat");
+  const lon = params.get("lon");
+  const sev = params.get("sev");
+
+  if (lat && lon && ["High", "Critical"].includes(sev)) {
+      const color = severityColors[sev];
+
+      console.log("📌 Direct alert received:", lat, lon, sev);
+
+      // Marker
+      const directMarker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          html: `<div style="background:${color};
+                           width:16px;height:16px;border-radius:50%;
+                           border:2px solid white;"></div>`
+        })
+      }).addTo(map);
+
+      directMarker.bindPopup(
+        `<b>Alert Location</b><br>
+         Severity: <span style="color:${color};font-weight:bold;">${sev}</span>`
+      ).openPopup();
+
+      // Circle
+      L.circle([lat, lon], {
+        color,
+        fillColor: color,
+        fillOpacity: 0.25,
+        radius: sev === "Critical" ? 500 : 300
+      }).addTo(map);
+
+      // Center view
+      map.setView([lat, lon], 14);
+  }
+
+
+  /* ---------------------------------------------------
+     LIVE SOCKET.IO ALERTS (YOUR EXISTING FEATURE)
+  -----------------------------------------------------*/
+  socket.on('connect', () => {
+    console.log("✅ Connected to live map updates");
+  });
+
+  socket.on('map_alert', (data) => {
+    const { vehicle_id, latitude, longitude, severity, message } = data;
+
+    console.log("Incoming live alert:", data);
+
+    if (!["High", "Critical"].includes(severity)) return;
+    if (!latitude || !longitude) return;
+
+    // Already plotted once → lock
+    if (activeZones[vehicle_id]) return;
+
+    const color = severityColors[severity];
+
+    // Marker
+    const marker = L.marker([latitude, longitude], {
+      icon: L.divIcon({
+        html: `<div style="background:${color};
+                         width:16px;height:16px;border-radius:50%;
+                         border:2px solid white;"></div>`,
+        className: ""
+      })
+    }).addTo(map);
+
+    marker.bindPopup(
+      `<b>${vehicle_id}</b><br>${message}<br>
+       <span style="color:${color};font-weight:bold;">${severity}</span>`
+    ).openPopup();
+
+    // Circle
+    const circle = L.circle([latitude, longitude], {
+      color,
+      fillColor: color,
+      fillOpacity: 0.25,
+      radius: severity === "Critical" ? 500 : 300
+    }).addTo(map);
+
+    // Optional small route line
+    const route = [
+      [latitude, longitude],
+      [latitude + 0.003, longitude + 0.004]
+    ];
+    const polyline = L.polyline(route, { color, dashArray: "10,10" }).addTo(map);
+
+    map.setView([latitude, longitude], 14);
+
+    activeZones[vehicle_id] = { marker, circle, polyline };
+
+    // Manual remove on click
+    marker.on('click', () => {
+      map.removeLayer(marker);
+      map.removeLayer(circle);
+      map.removeLayer(polyline);
+      delete activeZones[vehicle_id];
+    });
+
+    // Auto remove after 2 minutes
+    setTimeout(() => {
+      map.removeLayer(marker);
+      map.removeLayer(circle);
+      map.removeLayer(polyline);
+      delete activeZones[vehicle_id];
+    }, 120000);
+  });
+</script>
+
+{% endblock %}

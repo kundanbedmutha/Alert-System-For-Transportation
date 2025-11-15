@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}Alerts | Smart Transport System{% endblock %}
+{% block content %}
+
+<style>
+.page-title {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+.tab-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+}
+.tab-button {
+  padding: 10px 25px;
+  border: none;
+  cursor: pointer;
+  background-color: #e5e7eb;
+  border-radius: 10px 10px 0 0;
+  font-weight: bold;
+  transition: 0.3s;
+  margin: 0 5px;
+}
+.tab-button.active {
+  background-color: #4F46E5;
+  color: white;
+}
+.tab-content {
+  display: none;
+  padding: 20px;
+  background: white;
+  border-radius: 0 0 15px 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.tab-content.active { display: block; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+thead { background-color: #4F46E5; color: white; }
+th, td { padding: 12px 15px; text-align: left; }
+tbody tr:nth-child(even) { background-color: #f9fafb; }
+tbody tr:hover { background-color: #f3f4f6; }
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+}
+.badge.low { background-color: #22c55e; }
+.badge.medium { background-color: #facc15; color: #111; }
+.badge.high { background-color: #ef4444; }
+.badge.critical { background-color: #6b21a8; }
+
+.new-alert {
+  animation: flash 1s ease-in-out;
+}
+@keyframes flash {
+  0% { background-color: #fde68a; }
+  100% { background-color: transparent; }
+}
+
+.notification-banner {
+  position: fixed;
+  right: 20px;
+  z-index: 9999;
+  padding: 14px 20px;
+  border-radius: 10px;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  font-weight: 600;
+  font-size: 1rem;
+  animation: fadeInOut 8s;
+}
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(20px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+</style>
+
+<h1 class="page-title">🚨 Active Alerts & Logs</h1>
+
+<!-- Tabs -->
+<div class="tab-container">
+  <button class="tab-button active" onclick="openTab('live')">Live Alerts</button>
+  <button class="tab-button" onclick="openTab('past')">Past Alerts</button>
+</div>
+
+<!-- LIVE Alerts -->
+<div id="live" class="tab-content active">
+  <h3>🔴 Live Alerts (auto-updating)</h3>
+
+  <table id="live-table">
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Vehicle ID</th>
+        <th>Message</th>
+        <th>Severity</th>
+        <th>Action</th> <!-- NEW COLUMN -->
+      </tr>
+    </thead>
+    <tbody>
+      {% if live_alerts %}
+        {% for alert in live_alerts %}
+          <tr>
+            <td>{{ alert.timestamp }}</td>
+            <td>{{ alert.vehicle_id }}</td>
+            <td>{{ alert.message }}</td>
+            <td>
+              <span class="badge {{ alert.severity|lower }}">{{ alert.severity }}</span>
+            </td>
+
+            <!-- ⭐ MAP BUTTON -->
+            <td>
+              {% if alert.severity in ['High', 'Critical'] %}
+                <a href="/map?lat={{ alert.latitude }}&lon={{ alert.longitude }}&sev={{ alert.severity }}&vehicle={{ alert.vehicle_id }}&msg={{ alert.message }}"
+                   style="padding:6px 12px;background:#4F46E5;color:white; border-radius:8px;
+                          text-decoration:none;font-weight:600;">
+                  View Map
+                </a>
+              {% else %}
+                <span style="color:#6b7280;">—</span>
+              {% endif %}
+            </td>
+
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5" style="text-align:center; color:gray;">No live alerts currently.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- PAST Alerts -->
+<div id="past" class="tab-content">
+  <h3>🕒 Past Alerts (older records)</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Vehicle ID</th>
+        <th>Message</th>
+        <th>Severity</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if past_alerts %}
+        {% for alert in past_alerts %}
+          <tr>
+            <td>{{ alert.timestamp }}</td>
+            <td>{{ alert.vehicle_id }}</td>
+            <td>{{ alert.message }}</td>
+            <td>
+              <span class="badge {{ alert.severity|lower }}">{{ alert.severity }}</span>
+            </td>
+
+            <td>
+              {% if alert.severity in ['High', 'Critical'] %}
+                <a href="/map?lat={{ alert.latitude }}&lon={{ alert.longitude }}&sev={{ alert.severity }}&vehicle={{ alert.vehicle_id }}&msg={{ alert.message }}"
+                   style="padding:6px 12px;background:#4F46E5;color:white; border-radius:8px;
+                          text-decoration:none;font-weight:600;">
+                  View Map
+                </a>
+              {% else %}
+                <span style="color:#6b7280;">—</span>
+              {% endif %}
+            </td>
+
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5" style="text-align:center; color:gray;">No past alerts recorded yet.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+// 🔄 AUTO-UPDATE LIVE ALERTS
+socket.on('new_alert', function(data) {
+  const tbody = document.querySelector('#live-table tbody');
+  const row = document.createElement('tr');
+  row.classList.add('new-alert');
+
+  const mapButton = (["High", "Critical"].includes(data.severity))
+    ? `<a href="/map?lat=${data.latitude}&lon=${data.longitude}&sev=${data.severity}&vehicle=${data.vehicle_id}&msg=${data.message}"
+         style='padding:6px 12px;background:#4F46E5;color:white;border-radius:8px;
+         text-decoration:none;font-weight:600;'>View Map</a>`
+    : `<span style="color:#6b7280;">—</span>`;
+
+  row.innerHTML = `
+    <td>${new Date(data.timestamp).toLocaleString()}</td>
+    <td>${data.vehicle_id}</td>
+    <td>${data.message}</td>
+    <td><span class="badge ${data.severity.toLowerCase()}">${data.severity}</span></td>
+    <td>${mapButton}</td>
+  `;
+
+  tbody.prepend(row);
+
+  // Sound on high/critical
+  if (["High", "Critical"].includes(data.severity)) {
+    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+  }
+});
+
+function openTab(tabId) {
+  document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  document.querySelector(`button[onclick="openTab('${tabId}')"]`).classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+
+{% endblock %}

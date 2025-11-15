@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Driver Dashboard{% endblock %}
+{% block content %}
+<h2 style="text-align:center;margin-top:15px;">👋 Welcome, {{ name }}!</h2>
+<h4 style="text-align:center;">Your Recent Alerts</h4>
+
+{% if alerts %}
+<table style="width:80%;margin:20px auto;border-collapse:collapse;">
+  <thead style="background:#4F46E5;color:white;">
+    <tr><th>Timestamp</th><th>Message</th><th>Severity</th></tr>
+  </thead>
+  <tbody>
+    {% for alert in alerts %}
+    <tr>
+      <td>{{ alert.timestamp }}</td>
+      <td>{{ alert.message }}</td>
+      <td>{{ alert.severity }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="text-align:center;color:gray;">No alerts for your vehicle yet.</p>
+{% endif %}
+
+<div style="text-align:center;margin-top:15px;">
+  <a href="/logout" style="padding:8px 16px;background:#ef4444;color:white;border-radius:8px;text-decoration:none;">Logout</a>
+</div>
+{% endblock %}

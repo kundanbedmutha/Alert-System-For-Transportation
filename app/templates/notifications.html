@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Notifications | Smart Transport System{% endblock %}
+{% block content %}
+
+<style>
+.page-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-top: 20px;
+  font-weight: bold;
+}
+.table-container {
+  width: 90%;
+  margin: 30px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+thead {
+  background-color: #4F46E5;
+  color: white;
+}
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+.badge {
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+}
+.badge.driver { background-color: #16a34a; }
+.badge.police { background-color: #1e3a8a; }
+.badge.low { background-color: #22c55e; }
+.badge.medium { background-color: #facc15; color:#111; }
+.badge.high { background-color: #ef4444; }
+.badge.critical { background-color: #6b21a8; }
+</style>
+
+<h1 class="page-title">📩 Notifications Log</h1>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Recipient</th>
+        <th>Vehicle ID</th>
+        <th>Message</th>
+        <th>Severity</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if notifications %}
+        {% for n in notifications %}
+          <tr>
+            <td>{{ n.timestamp }}</td>
+            <td>
+              <span class="badge {{ n.recipient|lower }}">{{ n.recipient }}</span>
+            </td>
+            <td>{{ n.vehicle_id }}</td>
+            <td>{{ n.message }}</td>
+            <td>
+              <span class="badge {{ n.severity|lower }}">{{ n.severity }}</span>
+            </td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5" style="text-align:center; color:gray;">No notifications yet.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
