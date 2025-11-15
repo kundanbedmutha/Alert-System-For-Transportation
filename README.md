@@ -96,3 +96,31 @@ Shows:
 ---
 
 ## 📁 Project Structure
+```text
+app/
+  app.py                  # Main Flask + Socket.IO backend
+  livestream_simulator.py # Live vehicle sensor stream to /sensor
+  models/
+    alert_model.joblib
+    accident_model.joblib
+    severity_model.joblib
+
+templates/
+  index.html
+  dashboard.html
+  alerts.html
+  map.html
+  notifications.html
+  user_dashboard.html
+  clerk_login.html
+
+static/
+  css/style.css
+  js/main.js
+
+data/
+  Synthetic_Transportation_Dataset_Expanded_v2.csv
+
+requirements.txt
+.env.example
+README.md
